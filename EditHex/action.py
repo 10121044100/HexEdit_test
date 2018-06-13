@@ -1,60 +1,91 @@
-import re
-import sys
+from file import *
 
-def check_range(range):
-	match = re.match("^(\d+)-(\d+)$", range)
-	if match:
-		start = int(match.group(1))
-		end = int(match.group(2))
+def action_create(data=None, file=None):
+	if file is None:
+		print data
 	else:
-		print >>sys.stderr, "[-] bad range data"
-		return None, None
+		write_file(file, data, False)
 
+def action_delete(data=None, file=None, start=0, end=0):
 	if start > end:
-		tmp = start
-		start = end
-		end = tmp
+		print "[-] need to exchang start and end"
+		return False
 
-	return start, end
+	if data is not None:
+		if len(data) < start:
+			print "[-] data length error...."
+			return False
 
-def check_info(action_info):
-	try:
-		if not action_info['action']:
-			print >>sys.stderr, "[-] bad argument(action)"
-			return None
+		front = data[:start]
+		back = data[end:]
 
-		if not action_info['data']:
-			print >>sys.stderr, "[-] bad argument(data)"
-			return None
-		
-		if not action_info['file']:
-			print >>sys.stderr, "[-] bad argument(file)"
-			return None
-		elif action_info['file']:
-			# check path
-			pass
+		data = front + back
+		if file is None:
+			print data
+		else:
+			write_file(file, data, False)
 
-		if not action_info['range'] and not action_info['offset']:
-			print >>sys.stderr, "[-] bad arguments(range or offset)"
-			return None
+		return True
 
-	except:
-		print >>sys.stderr, "[-] arguments exception"
-		return None
+	if file is not None:
+		data = read_file(file)
+		if len(data) < start:
+			print "[-] data length error...."
+			return False
 
-	return action_info
+		front = data[:start]
+		back = data[end:]
 
-def edit_hex(action_info):
-	print "[+] debug data"
-	print action_info
+		data = front + back
+		write_file(file, data, True)
 
-	if action_info['action'] == "create":
-		pass
-	elif action_info['action'] == "delete":
-		pass
-	elif action_info['action'] == "insert":
-		pass
-	elif action_info['action'] == "modify":
-		pass
+		return True
+
+def action_insert(data=None, file=None, offset=0):
+	if file is None:
+		print "[-] error...."
+
+		return False
 	else:
-		print >>sys.stderr, "[-] bad action error, need to check a action argument"
+		file_data = read_file(file)
+		if len(file_data) < offset:
+			print "[-] data length error...."
+			return False
+
+		front = file_data[:offset]
+		back = file_data[offset:]
+
+		new_data = front + data + back
+		write_file(file, new_data, True)
+
+		return True
+
+def action_modify(data=None, file=None, offset=0):
+	if file is None:
+		print "[-] error...."
+	else:
+		file_data = read_file(file)
+		if len(file_data) < offset:
+			print "[-] data length error...."
+			return False
+
+		front = file_data[:offset]
+		back = file_data[offset+len(data):]
+
+		new_data = front + data + back
+		write_file(file, new_data, True)
+
+def action_search(data=None, file=None):
+	if file is None:
+		print "[-] error...."
+	else:
+		file_data = read_file(file)
+
+		while Ture:
+			tmp = file_data
+
+			offset = file_data.find(data)
+			if offset == -1:
+				break
+
+			print "[+] offset : " + hex(offset)

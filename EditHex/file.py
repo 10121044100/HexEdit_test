@@ -10,5 +10,5 @@ def write_file(file_name, data, isrewrite):
 		#unlink(file_name)
 		pass
 
-	with open(file_name) as fd:
+	with open(file_name, "w") as fd:
 		fd.write(data)
